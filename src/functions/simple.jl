@@ -9,12 +9,13 @@ Creates a copy of `A`, where the dimensions of `A` are assigned indices from the
 The result of this method is equivalent to `permutedims(A,p)` where p is the permutation such that `IC=IA[p]`. The implementation of tensorcopy is however more efficient on average.
 """
 function tensorcopy(A, IA, IC=IA)
-    IA == IC && return copy(A)
+    IA == IC && return (copy(A), IC)
 
     checkindices(A, IA)
     indCinA = add_indices(IA, IC)
     C = similar_from_indices(eltype(A), indCinA, A)
     add!(1, A, Val{:N}, 0, C, indCinA)
+    return (C, IC)
 end
 
 """`tensoradd(A, IA, B, IB, IC=IA)`
@@ -41,6 +42,7 @@ function tensoradd(A, IA, B, IB, IC=IA)
     end
     indCinB = add_indices(IB, IC)
     add!(1, B, Val{:N}, 1, C, indCinB)
+    return (C, IC)
 end
 
 """`tensortrace(A, IA, IC=unique2(IA))`
@@ -52,6 +54,7 @@ function tensortrace(A, IA, IC = unique2(IA))
     indCinA, cindA1, cindA2 = trace_indices(IA,IC)
     C = similar_from_indices(eltype(A), indCinA, A)
     trace!(1, A, Val{:N}, 0, C, indCinA, cindA1, cindA2)
+    return (C, IC)
 end
 
 """`tensorcontract(A, IA, B, IB, IC=symdiff(IA,IB); method=:BLAS)`
@@ -77,7 +80,7 @@ function tensorcontract(A, IA, B, IB, IC = symdiff(IA,IB); method::Symbol = :BLA
     else
         throw(ArgumentError("unknown contraction method"))
     end
-    return C
+    return (C, IC)
 end
 
 """`tensorproduct(A, IA, B, IB, IC=union(IA,IB))`
