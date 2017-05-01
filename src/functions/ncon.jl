@@ -49,6 +49,19 @@ end
 #     push!(N, ta)
 # end
 
+"""`ncon(arrays, links, axes, sequence)`
+
+Contracts a tensor network specified by arrays and links,
+contracting internal edges in the order specified by sequence,
+and with the resulting output tensor transposed to have its axes in the order 
+specified by axes.
+
+TODO: Use "nones in sequence" notation to specify outer products
+TODO: Compute valid sequences from links
+TODO: Estimate cost of contraction from links and array shapes
+TODO: Compute fast contraction sequences from links and array shapes
+TODO: Test set 
+"""
 function ncon(arrays, links, axes, sequence)
     network = Network(arrays, links)
     while length(sequence) > 0 || length(network) > 1
