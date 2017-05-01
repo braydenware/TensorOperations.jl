@@ -4,6 +4,7 @@ export tensorcopy, tensoradd, tensortrace, tensorcontract, tensorproduct, scalar
 export tensorcopy!, tensoradd!, tensortrace!, tensorcontract!, tensorproduct!
 
 export @tensor
+export ncon
 
 # Auxiliary functions
 #---------------------
@@ -34,6 +35,7 @@ include("indexnotation/product.jl")
 #----------
 include("functions/simple.jl")
 include("functions/inplace.jl")
+include("functions/ncon.jl")
 
 
 end # module
