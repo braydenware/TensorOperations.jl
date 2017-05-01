@@ -54,7 +54,8 @@ function tensortrace(A, IA, IC = unique2(IA))
     indCinA, cindA1, cindA2 = trace_indices(IA,IC)
     C = similar_from_indices(eltype(A), indCinA, A)
     trace!(1, A, Val{:N}, 0, C, indCinA, cindA1, cindA2)
-    return (C, IC)
+    cI = unique(setdiff(IA, IC))
+    return (C, IC, cI)
 end
 
 """`tensorcontract(A, IA, B, IB, IC=symdiff(IA,IB); method=:BLAS)`
@@ -80,7 +81,8 @@ function tensorcontract(A, IA, B, IB, IC = symdiff(IA,IB); method::Symbol = :BLA
     else
         throw(ArgumentError("unknown contraction method"))
     end
-    return (C, IC)
+    cI = intersect(IA, IB)
+    return (C, IC, cI)
 end
 
 """`tensorproduct(A, IA, B, IB, IC=union(IA,IB))`
