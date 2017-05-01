@@ -8,7 +8,7 @@ c = [:c, :g, :b, :g, :e]
 D1 = ncon([A, B, C], [a, b, c], [:f, :h], [:a, :d, :g, :b, :c, :e])
 
 @tensor begin
-    D2["fh"] := A["abhcd"]*B["daef"]*C["cgbge"]
+    D2[f, h] := A[a,b,h,c,d]*B[d,a,e,f]*C[c,g,b,g,e]
 end
 
 @test vecnorm(D1-D2)<eps()*sqrt(length(D1))*vecnorm(D1+D2)
