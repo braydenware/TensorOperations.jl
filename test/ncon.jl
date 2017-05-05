@@ -12,3 +12,12 @@ D1 = ncon([A, B, C], [a, b, c], [:f, :h], [:a, :d, :g, :b, :c, :e])
 end
 
 @test vecnorm(D1-D2)<eps()*sqrt(length(D1))*vecnorm(D1+D2)
+
+D3 = ncon([A, B, C],
+          [[1, 2, 8, 3, 4],
+           [4, 1, 5, 6],    
+           [3, 7, 2, 7, 5]], 
+          [6, 8],
+          [1, 4, 7, 2, 3, 5])
+
+@test D1 ≈ D3

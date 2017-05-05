@@ -1,11 +1,11 @@
-immutable Network{T}
+immutable Network{T, Q}
     tensors::Vector{T}
-    links::Vector{Vector{Symbol}}
+    links::Vector{Vector{Q}}
 end
 
 Base.length(N::Network) = length(N.tensors)
 
-function Base.push!{T}(N::Network{T}, tensor::T, axes::Vector{Symbol})
+function Base.push!{T, Q}(N::Network{T}, tensor::T, axes::Vector{Q})
     ndims(tensor)==length(axes) || throw(IndexError("Wrong number of axes labels for tensor of dimension $(ndims(tensor))"))
     push!(N.tensors, tensor)
     push!(N.links, axes)
@@ -19,7 +19,7 @@ function popat!(N::Network, ns::Int...)
     return tensors, links
 end
 
-function Base.find(N::Network, edge::Symbol)
+function Base.find{T, Q}(N::Network{T, Q}, edge::Q)
     ans = Int[]
     for (j, axes) in enumerate(N.links)
         for k in find(axes.==edge)
@@ -63,6 +63,10 @@ TODO: Compute fast contraction sequences from links and array shapes
 TODO: Test set 
 """
 function ncon(arrays, links, axes, sequence)
+    sequence = copy(sequence)
+    links = copy(links)
+    arrays = copy(arrays)
+    
     network = Network(arrays, links)
     while length(sequence) > 0 || length(network) > 1
         if length(sequence) > 0
