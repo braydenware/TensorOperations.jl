@@ -19,6 +19,12 @@ function popat!(N::Network, ns::Int...)
     return tensors, links
 end
 
+function Base.shift!(N::Network)
+    t = shift!(N.tensors)
+    l = shift!(N.links)
+    return t, l
+end
+
 function Base.find{T, Q}(N::Network{T, Q}, edge::Q)
     ans = Int[]
     for (j, axes) in enumerate(N.links)
@@ -66,7 +72,7 @@ function ncon(arrays, links, axes, sequence)
     sequence = copy(sequence)
     links = copy(links)
     arrays = copy(arrays)
-    
+
     network = Network(arrays, links)
     while length(sequence) > 0 || length(network) > 1
         if length(sequence) > 0
@@ -89,7 +95,7 @@ function ncon(arrays, links, axes, sequence)
             throw(IndexError("Contraction network disconnected"))
         end
     end
-    ((t,), (a,)) = popat!(network, 1)
-    (tout, aout) = tensorcopy(t, a, axes)
+    t, a = shift!(network)
+    tout, aout = tensortranspose(t, a, axes)
     return tout
 end

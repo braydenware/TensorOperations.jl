@@ -18,6 +18,14 @@ function tensorcopy(A, IA, IC=IA)
     return (C, IC)
 end
 
+function tensortranspose(A, IA, IC)
+    checkindices(A, IA)
+    indCinA = add_indices(IA, IC)
+    C = permutedims(A, indCinA)
+    return (C, IC)
+end
+
+
 """`tensoradd(A, IA, B, IB, IC=IA)`
 
 Returns the result of adding arrays `A` and `B` where the iterabels `IA` and `IB` denote how the array data should be permuted in order to be added. More specifically, the result of this method is equivalent to
