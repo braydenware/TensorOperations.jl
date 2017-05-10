@@ -2,6 +2,17 @@
 #
 # Implements the microkernels for solving the subproblems of the various problems.
 
+@generated function transpose_micro!{N}(A::StridedData{N}, C::StridedData{N}, dims::NTuple{N, Int}, offsetA::Int, offsetC::Int)
+    quote
+        startA = A.start+offsetA
+        stridesA = A.strides
+        startC = C.start+offsetC
+        stridesC = C.strides
+        @stridedloops($N, dims, indA, startA, stridesA, indC, startC, stridesC, @inbounds C[indC]=A[indA])
+        return C
+    end
+end
+
 @generated function add_micro!{N}(α, A::StridedData{N}, β, C::StridedData{N}, dims::NTuple{N, Int}, offsetA::Int, offsetC::Int)
     quote
         startA = A.start+offsetA

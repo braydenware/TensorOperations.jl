@@ -4,6 +4,25 @@
 # Base Library. Checks dimensions and converts to StridedData before passing
 # to low-level (recursive) function.
 
+"""`tranpose!(A, conjA, C, indCinA)`
+
+Implements `C = permute(op(A))` where `A` is permuted according to `indCinA` and `op` is `conj` if `conjA=Val{:C}` or the identity map if `conjA=Val{:N}`. The indexable collection `indCinA` contains as nth entry the dimension of `A` associated with the nth dimension of `C`.
+"""
+function transpose!{CA}(A::StridedArray, ::Type{Val{CA}}, C::StridedArray, indCinA)
+    for i = 1:ndims(C)
+        size(A,indCinA[i]) == size(C,i) || throw(DimensionMismatch())
+    end
+
+    dims, stridesA, stridesC, minstrides = add_strides(size(C), _permute(_strides(A),indCinA), _strides(C))
+    dataA = StridedData(A, stridesA, Val{CA})
+    offsetA = 0
+    dataC = StridedData(C, stridesC)
+    offsetC = 0
+
+    transpose_micro!(dataA, dataC, dims, offsetA, offsetC)
+    return C
+end
+
 """`add!(α, A, conjA, β, C, indCinA)`
 
 Implements `C = β*C+α*permute(op(A))` where `A` is permuted according to `indCinA` and `op` is `conj` if `conjA=Val{:C}` or the identity map if `conjA=Val{:N}`. The indexable collection `indCinA` contains as nth entry the dimension of `A` associated with the nth dimension of `C`.
