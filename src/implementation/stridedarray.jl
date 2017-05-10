@@ -152,7 +152,8 @@ function contract!{CA,CB,TC<:Base.LinAlg.BlasFloat}(α, A::StridedArray, ::Type{
         else
             Apermuted = Array{TC}(tuple(odimsA..., cdims...))
             # tensorcopy!(A, 1:NA, Apermuted, pA)
-            add!(1, A, Val{:N}, 0, Apermuted, pA)
+            # add!(1, A, Val{:N}, 0, Apermuted, pA)
+            transpose!(A, Val{:N}, Apermuted, pA)
             Amat = reshape(Apermuted, (olengthA, clength))
         end
     end
@@ -166,7 +167,8 @@ function contract!{CA,CB,TC<:Base.LinAlg.BlasFloat}(α, A::StridedArray, ::Type{
         else
             Bpermuted = Array{TC}(tuple(odimsB..., cdims...))
             # tensorcopy!(B, 1:NB, Bpermuted, pB)
-            add!(1, B, Val{:N}, 0, Bpermuted, pB)
+            # add!(1, B, Val{:N}, 0, Bpermuted, pB)
+            transpose!(B, Val{:N}, Bpermuted, pB)
             Bmat = reshape(Bpermuted, (olengthB, clength))
         end
     else
@@ -180,7 +182,8 @@ function contract!{CA,CB,TC<:Base.LinAlg.BlasFloat}(α, A::StridedArray, ::Type{
         else
             Bpermuted = Array{TC}(tuple(cdims..., odimsB...))
             # tensorcopy!(B, 1:NB, Bpermuted, pB)
-            add!(1, B, Val{:N}, 0, Bpermuted, pB)
+            # add!(1, B, Val{:N}, 0, Bpermuted, pB)
+            transpose!(B, Val{:N}, Bpermuted, pB)
             Bmat = reshape(Bpermuted, (clength, olengthB))
         end
     end
@@ -193,7 +196,11 @@ function contract!{CA,CB,TC<:Base.LinAlg.BlasFloat}(α, A::StridedArray, ::Type{
         Cmat = Array{TC}(olengthA, olengthB)
         BLAS.gemm!(conjA, conjB, TC(1), Amat, Bmat, TC(0), Cmat)
         # tensoradd!(α, reshape(Cmat, tuple(odimsA..., odimsB...)), pC, β, C, 1:NC)
-        add!(α, reshape(Cmat, tuple(odimsA..., odimsB...)), Val{:N}, β, C, indCinoAB)
+        if α == 1 && β == 0
+            transpose!(reshape(Cmat, tuple(odimsA..., odimsB...)), Val{:N}, C, indCinoAB)
+        else
+            add!(α, reshape(Cmat, tuple(odimsA..., odimsB...)), Val{:N}, β, C, indCinoAB)
+        end
     end
     return C
 end
