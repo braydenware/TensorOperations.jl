@@ -4,13 +4,46 @@
 # Base Library. Checks dimensions and converts to StridedData before passing
 # to low-level (recursive) function.
 
+function blockperm(perm, sizes)
+    blockstarts = Int[]
+    blockstops = Int[]
+    curr = 1
+    currval = perm[1]
+    L = length(perm)
+    for i in 2:L
+        newval = perm[i]
+        if newval!=currval+1
+            push!(blockstarts, curr)
+            push!(blockstops, i-1)
+            curr = i
+        end
+        if i==L
+            push!(blockstarts, curr)
+            push!(blockstops, i)
+        end
+        currval = newval
+    end
+    insizes = [prod(sizes[s:f]) for (s, f) in zip(blockstarts, blockstops)]
+    pstarts = perm[blockstarts]
+    bperm = indexin(sort(pstarts), pstarts)
+    outsizes = insizes[bperm]
+    return insizes, bperm, outsizes
+end
+
 """`tranpose!(A, conjA, C, indCinA)`
 
 Implements `C = permute(op(A))` where `A` is permuted according to `indCinA` and `op` is `conj` if `conjA=Val{:C}` or the identity map if `conjA=Val{:N}`. The indexable collection `indCinA` contains as nth entry the dimension of `A` associated with the nth dimension of `C`.
 """
-function transpose!{CA}(A::StridedArray, ::Type{Val{CA}}, C::StridedArray, indCinA)
+function transpose!{CA}(A::StridedArray, ::Type{Val{CA}}, C::StridedArray, indCinA; block=true)
     for i = 1:ndims(C)
         size(A,indCinA[i]) == size(C,i) || throw(DimensionMismatch())
+    end
+
+    if block && length(indCinA)>8
+        insizes, bperm, outsizes = blockperm(indCinA, size(A))
+        A = reshape(A, insizes...)
+        indCinA = bperm
+        C = reshape(C, outsizes...)
     end
 
     dims, stridesA, stridesC, minstrides = add_strides(size(C), _permute(_strides(A),indCinA), _strides(C))
