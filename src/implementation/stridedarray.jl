@@ -42,6 +42,7 @@ function transpose!{CA}(A::StridedArray, ::Type{Val{CA}}, C::StridedArray, indCi
     if block && length(indCinA)>8
         insizes, bperm, outsizes = blockperm(indCinA, size(A))
         A = reshape(A, insizes...)
+        # println("transpose!{$(length(indCinA))} call rewritten to transpose!{$(length(bperm))}")
         indCinA = bperm
         C = reshape(C, outsizes...)
     end

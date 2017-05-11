@@ -3,6 +3,7 @@
 # Implements the microkernels for solving the subproblems of the various problems.
 
 @generated function transpose_micro!{N}(A::StridedData{N}, C::StridedData{N}, dims::NTuple{N, Int}, offsetA::Int, offsetC::Int)
+    Core.println("Generating transpose! for $N")
     quote
         startA = A.start+offsetA
         stridesA = A.strides
