@@ -138,7 +138,8 @@ function contract!{CA,CB,TC<:Base.LinAlg.BlasFloat}(α, A::StridedArray, ::Type{
         else
             Apermuted = Array{TC}(tuple(cdims..., odimsA...))
             # tensorcopy!(A, 1:NA, Apermuted, pA)
-            add!(1, A, Val{:N}, 0, Apermuted, pA)
+            # add!(1, A, Val{:N}, 0, Apermuted, pA)
+            transpose!(A, Val{:N}, Apermuted, pA)
             Amat = reshape(Apermuted, (clength, olengthA))
         end
     else
