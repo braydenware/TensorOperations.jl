@@ -5,29 +5,25 @@
 # to low-level (recursive) function.
 
 function blockperm(perm, sizes)
-    blockstarts = Int[]
-    blockstops = Int[]
+    blocks = Tuple{Int, Int}[]
     curr = 1
     currval = perm[1]
     L = length(perm)
     for i in 2:L
         newval = perm[i]
         if newval!=currval+1
-            push!(blockstarts, curr)
-            push!(blockstops, i-1)
+            push!(blocks, (curr, i-1))
             curr = i
         end
         if i==L
-            push!(blockstarts, curr)
-            push!(blockstops, i)
+            push!(blocks, (curr, i))
         end
         currval = newval
     end
-    insizes = [prod(sizes[s:f]) for (s, f) in zip(blockstarts, blockstops)]
-    pstarts = perm[blockstarts]
-    bperm = indexin(sort(pstarts), pstarts)
-    outsizes = insizes[bperm]
-    return insizes, bperm, outsizes
+    blocks = [(perm[s],perm[f]) for (s, f) in blocks]
+    sortedblocks = sort(blocks)
+    newperm = indexin(blocks, sortedblocks) 
+    return sortedblocks, newperm
 end
 
 """`tranpose!(A, conjA, C, indCinA)`
@@ -40,11 +36,13 @@ function transpose!{CA}(A::StridedArray, ::Type{Val{CA}}, C::StridedArray, indCi
     end
 
     if block && length(indCinA)>8
-        insizes, bperm, outsizes = blockperm(indCinA, size(A))
-        A = reshape(A, insizes...)
-        # println("transpose!{$(length(indCinA))} call rewritten to transpose!{$(length(bperm))}")
-        indCinA = bperm
-        C = reshape(C, outsizes...)
+        blocks, perm = blockperm(indCinA, size(A))
+        sizes = size(A)
+        sizes = [prod(sizes[s:f]) for (s, f) in blocks]
+        A = reshape(A, sizes...)
+        A = copy(A)
+        indCinA = perm
+        C = reshape(C, sizes[perm]...)
     end
 
     dims, stridesA, stridesC, minstrides = add_strides(size(C), _permute(_strides(A),indCinA), _strides(C))
